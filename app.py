@@ -15,9 +15,13 @@ def load_data():
     try:
         response = requests.get(WEB_APP_URL, timeout=10)
         data = response.json()
-        if len(data) > 1:
-            df = pd.DataFrame(data[1:], columns=data[0])
+        if isinstance(data, list) and len(data) > 1:
+            headers = [str(c) for c in data[0]]
+            df = pd.DataFrame(data[1:], columns=headers)
             return df
+        elif isinstance(data, list) and len(data) == 1:
+            headers = [str(c) for c in data[0]]
+            return pd.DataFrame(columns=headers)
         else:
             return pd.DataFrame(columns=["QR_ID", "Owner_Name", "Phone_Number", "Vehicle_Number", "Sale_Date", "Price"])
     except Exception as e:
@@ -30,7 +34,7 @@ if "qr" in query_params:
     # --- PUBLIC SCANNER VIEW ---
     qr_id = query_params["qr"]
     df = load_data()
-    user_data = df[df["QR_ID"] == qr_id]
+    user_data = df[df["QR_ID"] == qr_id] if "QR_ID" in df.columns else pd.DataFrame()
     
     st.caption("Powered by **Balaji Cyber Point** 🌐")
     st.title("🚗 Park Smart - गाडी मालकाशी संपर्क")
@@ -55,7 +59,6 @@ if "qr" in query_params:
             
         st.divider()
         
-        # Dark Mode Responsive Card Design
         st.markdown("""
         <div style="border: 2px solid #25D366; padding:18px; border-radius:12px; text-align:center; margin-top:10px;">
             <h3 style="margin-bottom:8px;">🏪 बालाजी सायबर पॉईंट (Balaji Cyber Point)</h3>
@@ -111,6 +114,7 @@ else:
                         'v_num': v_num
                     }
                     st.success(f"Entry saved directly to Google Sheet for {v_num}!")
+                    st.rerun()
                 else:
                     st.error("Failed to connect with Google Sheet script!")
             else:
