@@ -51,6 +51,8 @@ else:
         st.sidebar.success("Logged In!")
         
         st.header("➕ Add New Sale & Generate QR")
+        
+        # Form sathi Data processing
         with st.form("add_sale_form"):
             qr_id = st.text_input("QR Code ID (Ex: QR-101)")
             owner_name = st.text_input("Customer Name")
@@ -59,35 +61,46 @@ else:
             sale_date = st.date_input("Sale Date")
             price = st.number_input("Selling Price (₹)", value=149)
             
-            submit = st.form_submit_button("Save & Generate QR")
+            submit = st.form_submit_button("Save Entry")
             
-            if submit:
-                if qr_id and phone and v_num:
-                    df = pd.read_csv(DATA_FILE)
-                    new_data = pd.DataFrame([[qr_id, owner_name, phone, v_num, str(sale_date), price]], 
-                                           columns=df.columns)
-                    df = pd.concat([df, new_data], ignore_index=True)
-                    df.to_csv(DATA_FILE, index=False)
-                    st.success(f"Entry saved for {v_num}!")
-                    
-                    # Generate QR Code Image Automatically
-                    qr_link = f"{BASE_URL}/?qr={qr_id}"
-                    qr_img = qrcode.make(qr_link)
-                    
-                    buf = BytesIO()
-                    qr_img.save(buf, format="PNG")
-                    byte_im = buf.getvalue()
-                    
-                    st.image(byte_im, caption=f"QR Code for {qr_id} ({v_num})", width=200)
-                    st.download_button(
-                        label="📥 Download QR Code Sticker Image",
-                        data=byte_im,
-                        file_name=f"{qr_id}_{v_num}.png",
-                        mime="image/png"
-                    )
-                else:
-                    st.error("Please fill required fields!")
-        
+        if submit:
+            if qr_id and phone and v_num:
+                df = pd.read_csv(DATA_FILE)
+                new_data = pd.DataFrame([[qr_id, owner_name, phone, v_num, str(sale_date), price]], 
+                                       columns=df.columns)
+                df = pd.concat([df, new_data], ignore_index=True)
+                df.to_csv(DATA_FILE, index=False)
+                
+                # Session State madhe QR details store kara
+                st.session_state['latest_qr'] = {
+                    'qr_id': qr_id,
+                    'v_num': v_num
+                }
+                st.success(f"Entry saved for {v_num}!")
+            else:
+                st.error("Please fill required fields!")
+
+        # FORM CHYA BAHER QR Code dakhva ani Download Button dya (No Error!)
+        if 'latest_qr' in st.session_state:
+            latest = st.session_state['latest_qr']
+            qr_link = f"{BASE_URL}/?qr={latest['qr_id']}"
+            qr_img = qrcode.make(qr_link)
+            
+            buf = BytesIO()
+            qr_img.save(buf, format="PNG")
+            byte_im = buf.getvalue()
+            
+            st.divider()
+            st.subheader(f"✨ Generated QR Code for {latest['qr_id']} ({latest['v_num']})")
+            st.image(byte_im, width=220)
+            
+            st.download_button(
+                label="📥 Download QR Code Image",
+                data=byte_im,
+                file_name=f"{latest['qr_id']}_{latest['v_num']}.png",
+                mime="image/png"
+            )
+
         st.divider()
         st.header("📈 Sales Records")
         df_display = pd.read_csv(DATA_FILE)
