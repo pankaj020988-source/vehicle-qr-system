@@ -18,28 +18,34 @@ if not os.path.exists(DATA_FILE):
 query_params = st.query_params
 
 if "qr" in query_params:
-    # --- PUBLIC SCANNER VIEW ---
+    # --- PUBLIC SCANNER VIEW (MARATHI) ---
     qr_id = query_params["qr"]
     df = pd.read_csv(DATA_FILE)
     user_data = df[df["QR_ID"] == qr_id]
     
-    st.title("🚗 Park Smart - Vehicle Contact")
+    st.title("🚗 Park Smart - गाडी मालकाशी संपर्क")
     
     if not user_data.empty:
         owner_name = user_data.iloc[0]["Owner_Name"]
-        phone = str(user_data.iloc[0]["Phone_Number"])
+        phone = str(user_data.iloc[0]["Phone_Number"]).strip()
         v_num = user_data.iloc[0]["Vehicle_Number"]
         
-        st.warning(f"⚠️ Vehicle No: **{v_num}** is obstructing your way?")
-        st.info("Please contact the owner below to move the vehicle safely.")
+        st.warning(f"⚠️ **गाडी क्रमांक: {v_num}** अडथळा ठरत आहे का?")
+        st.info("गाडी मालकाला तातडीने कळवण्यासाठी खालील बटणावर क्लिक करा.")
         
+        # Marathi WhatsApp pre-filled text
+        marathi_msg = f"नमस्कार,%20तुमची%20गाडी%20*{v_num}*%20अडथळा%20ठरत%20आहे.%20कृपया%20ती%20लवकरात%20लवकर%20बाजूला%20करावी."
+        wa_url = f"https://wa.me/91{phone}?text={marathi_msg}"
+        
+        st.divider()
         col1, col2 = st.columns(2)
         with col1:
-            st.link_button("📞 Call Owner", f"tel:{phone}", use_container_width=True)
+            st.link_button("📞 डायरेक्ट कॉल करा", f"tel:{phone}", use_container_width=True)
         with col2:
-            st.link_button("💬 WhatsApp Owner", f"https://wa.me/91{phone}?text=Hello,%20your%20vehicle%20{v_num}%20is%20causing%20an%20obstruction.", use_container_width=True)
+            st.link_button("💬 WhatsApp वर मेसेज करा", wa_url, use_container_width=True, type="primary")
+            
     else:
-        st.error("Invalid QR Code or Unregistered Vehicle.")
+        st.error("हा QR कोड नोंदणीकृत नाही किंवा चुकीचा आहे.")
 
 else:
     # --- ADMIN DASHBOARD VIEW ---
@@ -80,7 +86,7 @@ else:
             else:
                 st.error("Please fill required fields!")
 
-        # FORM CHYA BAHER QR Code dakhva ani Download Button dya (No Error!)
+        # FORM CHYA BAHER QR Code dakhva ani Download Button dya
         if 'latest_qr' in st.session_state:
             latest = st.session_state['latest_qr']
             qr_link = f"{BASE_URL}/?qr={latest['qr_id']}"
