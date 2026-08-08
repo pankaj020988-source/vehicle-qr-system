@@ -18,7 +18,7 @@ if not os.path.exists(DATA_FILE):
 query_params = st.query_params
 
 if "qr" in query_params:
-    # --- PUBLIC SCANNER VIEW ---
+    # --- PUBLIC SCANNER VIEW (PRIVACY ENHANCED) ---
     qr_id = query_params["qr"]
     df = pd.read_csv(DATA_FILE)
     user_data = df[df["QR_ID"] == qr_id]
@@ -27,17 +27,26 @@ if "qr" in query_params:
     
     if not user_data.empty:
         owner_name = user_data.iloc[0]["Owner_Name"]
-        phone = str(user_data.iloc[0]["Phone_Number"])
+        phone = str(user_data.iloc[0]["Phone_Number"]).strip()
         v_num = user_data.iloc[0]["Vehicle_Number"]
         
-        st.warning(f"⚠️ Vehicle No: **{v_num}** is obstructing your way?")
-        st.info("Please contact the owner below to move the vehicle safely.")
+        # Hide phone number (Ex: 80******51)
+        masked_phone = phone[:2] + "******" + phone[-2:]
         
-        col1, col2 = st.columns(2)
-        with col1:
-            st.link_button("📞 Call Owner", f"tel:{phone}", use_container_width=True)
-        with col2:
-            st.link_button("💬 WhatsApp Owner", f"https://wa.me/91{phone}?text=Hello,%20your%20vehicle%20{v_num}%20is%20causing%20an%20obstruction.", use_container_width=True)
+        st.warning(f"⚠️ Is Vehicle **{v_num}** causing an obstruction?")
+        st.info("Click the button below to send an urgent notification directly to the owner via WhatsApp.")
+        
+        # Privacy badge
+        st.caption(f"🔒 Registered Owner Contact: **{masked_phone}** (Protected)")
+        
+        # Pre-filled WhatsApp message URL
+        msg = f"Hello,%20your%20vehicle%20*{v_num}*%20is%20causing%20an%20obstruction.%20Please%20move%20it%20as%20soon%20as%20possible."
+        wa_url = f"https://wa.me/91{phone}?text={msg}"
+        
+        st.divider()
+        st.link_button("💬 Alert Owner on WhatsApp", wa_url, use_container_width=True, type="primary")
+        
+        st.caption(" Note: Your phone number is kept private on this screen for safety.")
     else:
         st.error("Invalid QR Code or Unregistered Vehicle.")
 
@@ -52,7 +61,6 @@ else:
         
         st.header("➕ Add New Sale & Generate QR")
         
-        # Form sathi Data processing
         with st.form("add_sale_form"):
             qr_id = st.text_input("QR Code ID (Ex: QR-101)")
             owner_name = st.text_input("Customer Name")
@@ -71,7 +79,6 @@ else:
                 df = pd.concat([df, new_data], ignore_index=True)
                 df.to_csv(DATA_FILE, index=False)
                 
-                # Session State madhe QR details store kara
                 st.session_state['latest_qr'] = {
                     'qr_id': qr_id,
                     'v_num': v_num
@@ -80,7 +87,7 @@ else:
             else:
                 st.error("Please fill required fields!")
 
-        # FORM CHYA BAHER QR Code dakhva ani Download Button dya (No Error!)
+        # Display generated QR Code outside the form
         if 'latest_qr' in st.session_state:
             latest = st.session_state['latest_qr']
             qr_link = f"{BASE_URL}/?qr={latest['qr_id']}"
