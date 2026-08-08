@@ -7,13 +7,13 @@ from io import BytesIO
 
 st.set_page_config(page_title="Park Smart - Balaji Cyber Point", page_icon="🚗", layout="centered")
 
-# Insert your Google Apps Script Web App URL here
-WEB_APP_URL = "YOUR_NEW_APPS_SCRIPT_WEB_APP_URL_HERE"
+# Google Apps Script Deployment URL (Directly Connected)
+WEB_APP_URL = "https://script.google.com/macros/s/AKfycbz_17lySYRxR2A92hTOJeuQ7V3Y_D934Pwc4PC8xTPUhcfI6JWYCt1J7ymeH/exec"
 BASE_URL = "https://vehicle-qr-system-fdotykfal7vtgdekhavrhm.streamlit.app"
 
 def load_data():
     try:
-        response = requests.get(WEB_APP_URL)
+        response = requests.get(WEB_APP_URL, timeout=10)
         data = response.json()
         if len(data) > 1:
             df = pd.DataFrame(data[1:], columns=data[0])
@@ -102,7 +102,7 @@ else:
                     "price": price
                 }
                 
-                res = requests.post(WEB_APP_URL, json=payload)
+                res = requests.post(WEB_APP_URL, json=payload, timeout=10)
                 
                 if res.status_code == 200:
                     st.session_state['latest_qr'] = {
@@ -115,7 +115,7 @@ else:
             else:
                 st.error("Please fill required fields!")
 
-        # STICKER GENERATOR
+        # ADVANCED GRAPHICAL STICKER GENERATOR
         if 'latest_qr' in st.session_state:
             latest = st.session_state['latest_qr']
             qr_link = f"{BASE_URL}/?qr={latest['qr_id']}"
