@@ -19,7 +19,7 @@ if not os.path.exists(DATA_FILE):
 query_params = st.query_params
 
 if "qr" in query_params:
-    # --- PUBLIC SCANNER VIEW (WITH BRANDING & CONTACT) ---
+    # --- PUBLIC SCANNER VIEW ---
     qr_id = query_params["qr"]
     df = pd.read_csv(DATA_FILE)
     user_data = df[df["QR_ID"] == qr_id]
@@ -35,7 +35,6 @@ if "qr" in query_params:
         st.warning(f"⚠️ **गाडी क्रमांक: {v_num}** अडथळा ठरत आहे का?")
         st.info("गाडी मालकाला तातडीने कळवण्यासाठी खालील बटणावर क्लिक करा.")
         
-        # Marathi WhatsApp pre-filled text
         marathi_msg = f"नमस्कार,%20तुमची%20गाडी%20*{v_num}*%20अडथळा%20ठरत%20आहे.%20कृपया%20ती%20लवकरात%20लवकर%20बाजूला%20करावी."
         wa_url = f"https://wa.me/91{phone}?text={marathi_msg}"
         
@@ -48,7 +47,6 @@ if "qr" in query_params:
             
         st.divider()
         
-        # Footer Business Promotion Card with Direct Phone Number
         st.markdown("""
         <div style="background-color:#f0f2f6; padding:18px; border-radius:12px; text-align:center; border: 1px solid #dcdfe6;">
             <h3 style="color:#1e3d59; margin-bottom:5px;">🏪 बालाजी सायबर पॉईंट (Balaji Cyber Point)</h3>
@@ -101,49 +99,67 @@ else:
             else:
                 st.error("Please fill required fields!")
 
-        # FORM CHYA BAHER QR Code Professional Image Design
+        # ADVANCED GRAPHICAL STICKER GENERATOR
         if 'latest_qr' in st.session_state:
             latest = st.session_state['latest_qr']
             qr_link = f"{BASE_URL}/?qr={latest['qr_id']}"
             
-            # Base QR Code Creation
+            # High-Res QR Code
             qr = qrcode.QRCode(
                 version=1,
                 error_correction=qrcode.constants.ERROR_CORRECT_H,
-                box_size=10,
-                border=2,
+                box_size=12,
+                border=1,
             )
             qr.add_data(qr_link)
             qr.make(fit=True)
-            qr_raw = qr.make_image(fill_color="black", back_color="white").convert('RGB')
+            qr_img = qr.make_image(fill_color="#1E293B", back_color="white").convert('RGB')
             
-            # Add Header & Footer Banner to Image for Professional Look
-            width, height = qr_raw.size
-            new_height = height + 100
-            canvas = Image.new('RGB', (width, new_height), 'white')
+            qr_w, qr_h = qr_img.size
             
+            # Canvas Setup (Total Canvas Width: 500px)
+            width = 500
+            height = 620
+            
+            canvas = Image.new('RGB', (width, height), '#FFFFFF')
             draw = ImageDraw.Draw(canvas)
-            # Paste QR Code in Center
-            canvas.paste(qr_raw, (0, 45))
             
-            # Draw Header and Footer Text
-            draw.text((width//2, 12), "PARK SMART - VEHICLE QR", fill="black", anchor="mm")
-            draw.text((width//2, 30), f"NO: {latest['v_num']}", fill="red", anchor="mm")
-            draw.text((width//2, new_height - 35), "SCAN TO CONTACT OWNER", fill="black", anchor="mm")
-            draw.text((width//2, new_height - 15), "Balaji Cyber Point (8007365051)", fill="blue", anchor="mm")
+            # 1. Header Banner (Dark Blue)
+            draw.rectangle([(0, 0), (width, 90)], fill="#0F172A")
+            draw.text((width//2, 32), "PARK SMART", fill="#F8FAFC", anchor="mm", font_size=32)
+            draw.text((width//2, 68), "EMERGENCY VEHICLE CONTACT", fill="#38BDF8", anchor="mm", font_size=18)
+            
+            # 2. Vehicle Number Highlight Box (Yellow)
+            draw.rectangle([(40, 110), (width-40, 160)], fill="#FEF08A", outline="#EAB308", width=2)
+            draw.text((width//2, 135), f"VEHICLE NO: {latest['v_num']}", fill="#854D0E", anchor="mm", font_size=22)
+            
+            # 3. QR Code Placement
+            qr_scaled = qr_img.resize((320, 320))
+            canvas.paste(qr_scaled, ((width - 320)//2, 180))
+            
+            # Border Around QR
+            draw.rectangle([((width - 320)//2 - 10, 170), ((width + 320)//2 + 10, 510)], outline="#CBD5E1", width=3)
+            
+            # 4. Action Text
+            draw.text((width//2, 528), "SCAN TO CONTACT VEHICLE OWNER", fill="#0F172A", anchor="mm", font_size=18)
+            
+            # 5. Footer Branding Banner (Balaji Cyber Point)
+            draw.rectangle([(0, 555), (width, height)], fill="#1E40AF")
+            draw.text((width//2, 577), "BALAJI CYBER POINT", fill="#FFFFFF", anchor="mm", font_size=20)
+            draw.text((width//2, 600), "Ph: 8007365051 | Mangaon", fill="#93C5FD", anchor="mm", font_size=15)
             
             buf = BytesIO()
             canvas.save(buf, format="PNG")
             byte_im = buf.getvalue()
             
             st.divider()
-            st.subheader(f"✨ Professional QR Sticker Image for {latest['v_num']}")
-            st.image(byte_im, width=260)
+            st.subheader(f"✨ Branded Vehicle Sticker for {latest['v_num']}")
+            st.image(byte_im, width=320)
             
             st.download_button(
-                label="📥 Download Professional QR Sticker Image",
+                label="📥 Download High-Res Branded Sticker (Ready to Print)",
                 data=byte_im,
-                file_name=f"{latest['qr_id']}_{latest['v_num']}_sticker.png",
+                file_name=f"{latest['v_num']}_Smart_Sticker.png",
                 mime="image/png"
             )
 
