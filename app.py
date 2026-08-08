@@ -55,14 +55,15 @@ if "qr" in query_params:
             
         st.divider()
         
+        # Dark Mode Responsive Card Design
         st.markdown("""
-        <div style="background-color:#f0f2f6; padding:18px; border-radius:12px; text-align:center; border: 1px solid #dcdfe6;">
-            <h3 style="color:#1e3d59; margin-bottom:5px;">🏪 बालाजी सायबर पॉईंट (Balaji Cyber Point)</h3>
+        <div style="border: 2px solid #25D366; padding:18px; border-radius:12px; text-align:center; margin-top:10px;">
+            <h3 style="margin-bottom:8px;">🏪 बालाजी सायबर पॉईंट (Balaji Cyber Point)</h3>
             <p style="margin:5px 0; font-size: 15px;">ऑनलाइन अर्ज, पॅन कार्ड, आधार अपडेट, डिजिटल प्रिंटिंग आणि स्मार्ट QR सेवा!</p>
-            <p style="color:#d9534f; font-weight:bold; margin-top:8px;">असाच स्मार्ट व्हेइकल QR कोड मिळवण्यासाठी आजच संपर्क करा!</p>
-            <hr style="margin: 10px 0;">
-            <p style="font-size: 16px; margin-bottom: 8px;"><b>📞 संपर्कासाठी कॉल करा / WhatsApp करा:</b> <a href="tel:8007365051" style="color:#007bff; font-weight:bold;">8007365051</a></p>
-            <a href="https://wa.me/918007365051?text=Hello%20Balaji%20Cyber%20Point,%20mala%20Vehicle%20QR%20Sticker%20pahije." target="_blank" style="background-color:#25D366; color:white; padding:8px 16px; text-decoration:none; border-radius:6px; font-weight:bold; display:inline-block;">💬 Order Your Vehicle QR Code</a>
+            <p style="color:#FF4B4B; font-weight:bold; margin-top:8px;">असाच स्मार्ट व्हेइकल QR कोड मिळवण्यासाठी आजच संपर्क करा!</p>
+            <hr style="margin: 12px 0;">
+            <p style="font-size: 16px; margin-bottom: 10px;"><b>📞 संपर्कासाठी कॉल करा / WhatsApp करा:</b> <br><a href="tel:8806789013" style="font-weight:bold; font-size:18px; text-decoration:none;">8806789013</a></p>
+            <a href="https://wa.me/918806789013?text=Hello%20Balaji%20Cyber%20Point,%20mala%20Vehicle%20QR%20Sticker%20pahije." target="_blank" style="background-color:#25D366; color:white; padding:10px 18px; text-decoration:none; border-radius:8px; font-weight:bold; display:inline-block; margin-top:5px;">💬 Order Your Vehicle QR Code</a>
         </div>
         """, unsafe_allow_html=True)
 
@@ -152,7 +153,7 @@ else:
             
             draw.rectangle([(0, 555), (width, height)], fill="#1E40AF")
             draw.text((width//2, 575), "TO ORDER THIS VEHICLE QR STICKER", fill="#FFFFFF", anchor="mm", font_size=16)
-            draw.text((width//2, 600), "Call / WhatsApp: 8007365051 (Balaji Cyber Point)", fill="#93C5FD", anchor="mm", font_size=14)
+            draw.text((width//2, 600), "Call / WhatsApp: 8806789013 (Balaji Cyber Point)", fill="#93C5FD", anchor="mm", font_size=14)
             
             buf = BytesIO()
             canvas.save(buf, format="PNG")
