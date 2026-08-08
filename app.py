@@ -7,8 +7,8 @@ from io import BytesIO
 
 st.set_page_config(page_title="Park Smart - Balaji Cyber Point", page_icon="🚗", layout="centered")
 
-# Google Apps Script Deployment URL (Directly Connected)
-WEB_APP_URL = "https://script.google.com/macros/s/AKfycbz_17lySYRxR2A92hTOJeuQ7V3Y_D934Pwc4PC8xTPUhcfI6JWYCt1J7ymeH/exec"
+# Updated Google Apps Script Deployment URL
+WEB_APP_URL = "https://script.google.com/macros/s/AKfycbxkp-5emmvmM204ha8fUpvi7X6vdqk3Ig9D5BQoKW6D-z140si484P-8jui3iBozHxq/exec"
 BASE_URL = "https://vehicle-qr-system-fdotykfal7vtgdekhavrhm.streamlit.app"
 
 def load_data():
