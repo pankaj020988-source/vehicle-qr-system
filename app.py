@@ -4,7 +4,7 @@ import os
 import qrcode
 from io import BytesIO
 
-st.set_page_config(page_title="Vehicle QR System", page_icon="🚗", layout="centered")
+st.set_page_config(page_title="Park Smart - Balaji Cyber Point", page_icon="🚗", layout="centered")
 
 DATA_FILE = "sales_data.csv"
 BASE_URL = "https://vehicle-qr-system-fdotykfal7vtgdekhavrhm.streamlit.app"
@@ -18,11 +18,13 @@ if not os.path.exists(DATA_FILE):
 query_params = st.query_params
 
 if "qr" in query_params:
-    # --- PUBLIC SCANNER VIEW (MARATHI) ---
+    # --- PUBLIC SCANNER VIEW (WITH BRANDING) ---
     qr_id = query_params["qr"]
     df = pd.read_csv(DATA_FILE)
     user_data = df[df["QR_ID"] == qr_id]
     
+    # Header Branding
+    st.caption("Powered by **Balaji Cyber Point** 🌐")
     st.title("🚗 Park Smart - गाडी मालकाशी संपर्क")
     
     if not user_data.empty:
@@ -44,12 +46,24 @@ if "qr" in query_params:
         with col2:
             st.link_button("💬 WhatsApp वर मेसेज करा", wa_url, use_container_width=True, type="primary")
             
+        st.divider()
+        
+        # Footer Business Promotion Card
+        st.markdown("""
+        <div style="background-color:#f0f2f6; padding:15px; border-radius:10px; text-align:center;">
+            <h4>🏪 बालाजी सायबर पॉईंट (Balaji Cyber Point)</h4>
+            <p style="margin:5px 0;">ऑनलाइन अर्ज, पॅन कार्ड, आधार अपडेट, डिजिटल प्रिंटिंग आणि स्मार्ट QR सेवा!</p>
+            <p><b>स्मार्ट व्हेइकल QR कोड मिळवण्यासाठी आजच संपर्क करा!</b></p>
+        </div>
+        """, unsafe_allow_html=True)
+
     else:
         st.error("हा QR कोड नोंदणीकृत नाही किंवा चुकीचा आहे.")
 
 else:
     # --- ADMIN DASHBOARD VIEW ---
     st.title("📊 Vehicle QR Sales Dashboard")
+    st.caption("BALAJI CYBER POINT - ADMIN PORTAL")
     
     password = st.sidebar.text_input("Admin Password", type="password")
     
