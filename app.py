@@ -1,19 +1,25 @@
 import streamlit as st
 import pandas as pd
-import os
 import qrcode
 from PIL import Image, ImageDraw, ImageFont
 from io import BytesIO
+from streamlit_gsheets import GSheetsConnection
 
 st.set_page_config(page_title="Park Smart - Balaji Cyber Point", page_icon="🚗", layout="centered")
 
-DATA_FILE = "sales_data.csv"
+# Google Sheet Details
+GSHEET_URL = "https://docs.google.com/spreadsheets/d/18XgagG8KiJbnu8Oz0wbaeB3kyRagGiS-gw5qyKWcgYQ/edit#gid=1366716852"
 BASE_URL = "https://vehicle-qr-system-fdotykfal7vtgdekhavrhm.streamlit.app"
 
-# Load or initialize sales data
-if not os.path.exists(DATA_FILE):
-    df = pd.DataFrame(columns=["QR_ID", "Owner_Name", "Phone_Number", "Vehicle_Number", "Sale_Date", "Price"])
-    df.to_csv(DATA_FILE, index=False)
+# Initialize Google Sheet Connection
+conn = st.connection("gsheets", type=GSheetsConnection)
+
+def load_data():
+    try:
+        df = conn.read(spreadsheet=GSHEET_URL, worksheet="QR", ttl="0")
+        return df
+    except Exception as e:
+        return pd.DataFrame(columns=["QR_ID", "Owner_Name", "Phone_Number", "Vehicle_Number", "Sale_Date", "Price"])
 
 # Query parameters check (for QR scanning)
 query_params = st.query_params
@@ -21,7 +27,7 @@ query_params = st.query_params
 if "qr" in query_params:
     # --- PUBLIC SCANNER VIEW ---
     qr_id = query_params["qr"]
-    df = pd.read_csv(DATA_FILE)
+    df = load_data()
     user_data = df[df["QR_ID"] == qr_id]
     
     st.caption("Powered by **Balaji Cyber Point** 🌐")
@@ -81,21 +87,23 @@ else:
             sale_date = st.date_input("Sale Date")
             price = st.number_input("Selling Price (₹)", value=149)
             
-            submit = st.form_submit_button("Save Entry")
+            submit = st.form_submit_button("Save Entry to Google Sheet")
             
         if submit:
             if qr_id and phone and v_num:
-                df = pd.read_csv(DATA_FILE)
+                df = load_data()
                 new_data = pd.DataFrame([[qr_id, owner_name, phone, v_num, str(sale_date), price]], 
-                                       columns=df.columns)
-                df = pd.concat([df, new_data], ignore_index=True)
-                df.to_csv(DATA_FILE, index=False)
+                                       columns=["QR_ID", "Owner_Name", "Phone_Number", "Vehicle_Number", "Sale_Date", "Price"])
+                updated_df = pd.concat([df, new_data], ignore_index=True)
+                
+                # Save directly to Google Sheets in 'QR' worksheet
+                conn.update(spreadsheet=GSHEET_URL, worksheet="QR", data=updated_df)
                 
                 st.session_state['latest_qr'] = {
                     'qr_id': qr_id,
                     'v_num': v_num
                 }
-                st.success(f"Entry saved for {v_num}!")
+                st.success(f"Entry saved to Google Sheet for {v_num}!")
             else:
                 st.error("Please fill required fields!")
 
@@ -104,7 +112,6 @@ else:
             latest = st.session_state['latest_qr']
             qr_link = f"{BASE_URL}/?qr={latest['qr_id']}"
             
-            # High-Res QR Code
             qr = qrcode.QRCode(
                 version=1,
                 error_correction=qrcode.constants.ERROR_CORRECT_H,
@@ -121,26 +128,20 @@ else:
             canvas = Image.new('RGB', (width, height), '#FFFFFF')
             draw = ImageDraw.Draw(canvas)
             
-            # 1. Header Banner (Dark Blue)
             draw.rectangle([(0, 0), (width, 90)], fill="#0F172A")
             draw.text((width//2, 32), "PARK SMART", fill="#F8FAFC", anchor="mm", font_size=32)
             draw.text((width//2, 68), "EMERGENCY VEHICLE CONTACT", fill="#38BDF8", anchor="mm", font_size=18)
             
-            # 2. Vehicle Number Highlight Box (Yellow)
             draw.rectangle([(40, 110), (width-40, 160)], fill="#FEF08A", outline="#EAB308", width=2)
             draw.text((width//2, 135), f"VEHICLE NO: {latest['v_num']}", fill="#854D0E", anchor="mm", font_size=22)
             
-            # 3. QR Code Placement
             qr_scaled = qr_img.resize((320, 320))
             canvas.paste(qr_scaled, ((width - 320)//2, 180))
             
-            # Border Around QR
             draw.rectangle([((width - 320)//2 - 10, 170), ((width + 320)//2 + 10, 510)], outline="#CBD5E1", width=3)
             
-            # 4. Action Text
             draw.text((width//2, 528), "SCAN TO CONTACT VEHICLE OWNER", fill="#0F172A", anchor="mm", font_size=18)
             
-            # 5. Footer Branding Banner (Clearly for Buying QR Sticker)
             draw.rectangle([(0, 555), (width, height)], fill="#1E40AF")
             draw.text((width//2, 575), "TO ORDER THIS VEHICLE QR STICKER", fill="#FFFFFF", anchor="mm", font_size=16)
             draw.text((width//2, 600), "Call / WhatsApp: 8007365051 (Balaji Cyber Point)", fill="#93C5FD", anchor="mm", font_size=14)
@@ -161,15 +162,9 @@ else:
             )
 
         st.divider()
-        st.header("📈 Sales Records")
-        df_display = pd.read_csv(DATA_FILE)
+        st.header("📈 Sales Records (Live Google Sheet Data)")
+        df_display = load_data()
         st.dataframe(df_display, use_container_width=True)
         
-        st.download_button(
-            label="📥 Download Excel/CSV Data",
-            data=df_display.to_csv(index=False).encode('utf-8'),
-            file_name='vehicle_qr_sales.csv',
-            mime='text/csv',
-        )
     else:
         st.info("👈 Enter Admin Password in sidebar to access sales portal.")
