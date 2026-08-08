@@ -1,23 +1,25 @@
 import streamlit as st
 import pandas as pd
+import requests
 import qrcode
 from PIL import Image, ImageDraw, ImageFont
 from io import BytesIO
-from streamlit_gsheets import GSheetsConnection
 
 st.set_page_config(page_title="Park Smart - Balaji Cyber Point", page_icon="🚗", layout="centered")
 
-# Google Sheet Details
-GSHEET_URL = "https://docs.google.com/spreadsheets/d/18XgagG8KiJbnu8Oz0wbaeB3kyRagGiS-gw5qyKWcgYQ/edit#gid=1366716852"
+# Insert your Google Apps Script Web App URL here
+WEB_APP_URL = "YOUR_NEW_APPS_SCRIPT_WEB_APP_URL_HERE"
 BASE_URL = "https://vehicle-qr-system-fdotykfal7vtgdekhavrhm.streamlit.app"
-
-# Initialize Google Sheet Connection
-conn = st.connection("gsheets", type=GSheetsConnection)
 
 def load_data():
     try:
-        df = conn.read(spreadsheet=GSHEET_URL, worksheet="QR", ttl="0")
-        return df
+        response = requests.get(WEB_APP_URL)
+        data = response.json()
+        if len(data) > 1:
+            df = pd.DataFrame(data[1:], columns=data[0])
+            return df
+        else:
+            return pd.DataFrame(columns=["QR_ID", "Owner_Name", "Phone_Number", "Vehicle_Number", "Sale_Date", "Price"])
     except Exception as e:
         return pd.DataFrame(columns=["QR_ID", "Owner_Name", "Phone_Number", "Vehicle_Number", "Sale_Date", "Price"])
 
@@ -91,23 +93,29 @@ else:
             
         if submit:
             if qr_id and phone and v_num:
-                df = load_data()
-                new_data = pd.DataFrame([[qr_id, owner_name, phone, v_num, str(sale_date), price]], 
-                                       columns=["QR_ID", "Owner_Name", "Phone_Number", "Vehicle_Number", "Sale_Date", "Price"])
-                updated_df = pd.concat([df, new_data], ignore_index=True)
-                
-                # Save directly to Google Sheets in 'QR' worksheet
-                conn.update(spreadsheet=GSHEET_URL, worksheet="QR", data=updated_df)
-                
-                st.session_state['latest_qr'] = {
-                    'qr_id': qr_id,
-                    'v_num': v_num
+                payload = {
+                    "qr_id": qr_id,
+                    "owner_name": owner_name,
+                    "phone": phone,
+                    "v_num": v_num,
+                    "sale_date": str(sale_date),
+                    "price": price
                 }
-                st.success(f"Entry saved to Google Sheet for {v_num}!")
+                
+                res = requests.post(WEB_APP_URL, json=payload)
+                
+                if res.status_code == 200:
+                    st.session_state['latest_qr'] = {
+                        'qr_id': qr_id,
+                        'v_num': v_num
+                    }
+                    st.success(f"Entry saved directly to Google Sheet for {v_num}!")
+                else:
+                    st.error("Failed to connect with Google Sheet script!")
             else:
                 st.error("Please fill required fields!")
 
-        # ADVANCED GRAPHICAL STICKER GENERATOR
+        # STICKER GENERATOR
         if 'latest_qr' in st.session_state:
             latest = st.session_state['latest_qr']
             qr_link = f"{BASE_URL}/?qr={latest['qr_id']}"
