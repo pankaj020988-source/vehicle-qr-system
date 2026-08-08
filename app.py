@@ -115,11 +115,8 @@ else:
             qr.make(fit=True)
             qr_img = qr.make_image(fill_color="#1E293B", back_color="white").convert('RGB')
             
-            qr_w, qr_h = qr_img.size
-            
-            # Canvas Setup (Total Canvas Width: 500px)
             width = 500
-            height = 620
+            height = 630
             
             canvas = Image.new('RGB', (width, height), '#FFFFFF')
             draw = ImageDraw.Draw(canvas)
@@ -143,10 +140,10 @@ else:
             # 4. Action Text
             draw.text((width//2, 528), "SCAN TO CONTACT VEHICLE OWNER", fill="#0F172A", anchor="mm", font_size=18)
             
-            # 5. Footer Branding Banner (Balaji Cyber Point)
+            # 5. Footer Branding Banner (Clearly for Buying QR Sticker)
             draw.rectangle([(0, 555), (width, height)], fill="#1E40AF")
-            draw.text((width//2, 577), "BALAJI CYBER POINT", fill="#FFFFFF", anchor="mm", font_size=20)
-            draw.text((width//2, 600), "Ph: 8007365051 | Mangaon", fill="#93C5FD", anchor="mm", font_size=15)
+            draw.text((width//2, 575), "TO ORDER THIS VEHICLE QR STICKER", fill="#FFFFFF", anchor="mm", font_size=16)
+            draw.text((width//2, 600), "Call / WhatsApp: 8007365051 (Balaji Cyber Point)", fill="#93C5FD", anchor="mm", font_size=14)
             
             buf = BytesIO()
             canvas.save(buf, format="PNG")
