@@ -1,10 +1,13 @@
 import streamlit as st
 import pandas as pd
 import os
+import qrcode
+from io import BytesIO
 
 st.set_page_config(page_title="Vehicle QR System", page_icon="🚗", layout="centered")
 
 DATA_FILE = "sales_data.csv"
+BASE_URL = "https://vehicle-qr-system-fdotykfal7vtgdekhavrhm.streamlit.app"
 
 # Load or initialize sales data
 if not os.path.exists(DATA_FILE):
@@ -44,10 +47,10 @@ else:
     
     password = st.sidebar.text_input("Admin Password", type="password")
     
-    if password == "admin123":  # Tumhi tumcha password badlu shakta
+    if password == "admin123":
         st.sidebar.success("Logged In!")
         
-        st.header("➕ Add New Sale")
+        st.header("➕ Add New Sale & Generate QR")
         with st.form("add_sale_form"):
             qr_id = st.text_input("QR Code ID (Ex: QR-101)")
             owner_name = st.text_input("Customer Name")
@@ -56,16 +59,32 @@ else:
             sale_date = st.date_input("Sale Date")
             price = st.number_input("Selling Price (₹)", value=149)
             
-            submit = st.form_submit_button("Save Entry")
+            submit = st.form_submit_button("Save & Generate QR")
             
             if submit:
                 if qr_id and phone and v_num:
                     df = pd.read_csv(DATA_FILE)
                     new_data = pd.DataFrame([[qr_id, owner_name, phone, v_num, str(sale_date), price]], 
                                            columns=df.columns)
-                    df = pd.concat([df, new_data], ignore_index=False)
+                    df = pd.concat([df, new_data], ignore_index=True)
                     df.to_csv(DATA_FILE, index=False)
-                    st.success(f"Successfully added {qr_id} for {v_num}!")
+                    st.success(f"Entry saved for {v_num}!")
+                    
+                    # Generate QR Code Image Automatically
+                    qr_link = f"{BASE_URL}/?qr={qr_id}"
+                    qr_img = qrcode.make(qr_link)
+                    
+                    buf = BytesIO()
+                    qr_img.save(buf, format="PNG")
+                    byte_im = buf.getvalue()
+                    
+                    st.image(byte_im, caption=f"QR Code for {qr_id} ({v_num})", width=200)
+                    st.download_button(
+                        label="📥 Download QR Code Sticker Image",
+                        data=byte_im,
+                        file_name=f"{qr_id}_{v_num}.png",
+                        mime="image/png"
+                    )
                 else:
                     st.error("Please fill required fields!")
         
